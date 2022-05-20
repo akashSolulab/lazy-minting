@@ -1,0 +1,51 @@
+body {
+    background-color: lightblue;
+}
+
+.app-heading {
+    text-align: center;
+    padding-top: 100px;
+}
+
+.connect-wallet {
+    position: absolute;
+    right: 50px;
+    top: 100px;
+}
+
+.card-col {
+    float: left;
+    width: 20%;
+    padding: 0 50px;
+}
+  
+/* Remove extra left and right margins, due to padding */
+.card-row {
+    padding-left: 300px;
+    padding-top: 100px;
+}
+
+/* Clear floats after the columns */
+.card-row:after {
+    content: "";
+    display: table;
+    clear: both;
+    align-items: center;
+}
+  
+/* Responsive columns */
+@media screen and (max-width: 600px) {
+    .card-col {
+            width: 100%;
+            display: block;
+            margin-bottom: 20px;
+        }
+    }
+  
+/* Style the counter cards */
+.container {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    padding: 16px;
+    
+    background-color: #f1f1f1;
+}
