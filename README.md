@@ -1,15 +1,20 @@
-# Basic Sample Hardhat Project
+## Lazy Minting
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+This project demonstrates Lazy Minting of NFTs
 
 Try running some of the following tasks:
 
 ```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
+npx hardhat run ./script/deployContract.js
+nodemon run ./script/uploadNFTMetadata.js
 ```
+###### Open Postman
+localhost:3000/api/uploadNFTMetadata
+
+###### Body Params
+{
+    "uri": "pass the token uri here"
+}
+
+###### Accessing Frontend
+/frontend/index.html
