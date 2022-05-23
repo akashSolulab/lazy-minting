@@ -15,7 +15,7 @@ contract LazyNFT is ERC721URIStorage, EIP712, AccessControl {
   string private constant SIGNATURE_VERSION = "1";
 
   constructor(address payable minter)
-    ERC721("LazyNFT", "LAZ") 
+    ERC721("LazyNFT", "LAZY") 
     EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION) {
       _setupRole(MINTER_ROLE, minter);
     }
@@ -24,6 +24,9 @@ contract LazyNFT is ERC721URIStorage, EIP712, AccessControl {
   struct NFTVoucher {
     /// @notice The id of the token to be redeemed. Must be unique - if another token with this ID already exists, the redeem function will revert.
     uint256 tokenId;
+
+     /// @notice The minimum token price
+    uint256 minPrice;
 
     /// @notice The metadata URI to associate with this token.
     string uri;
@@ -43,6 +46,9 @@ contract LazyNFT is ERC721URIStorage, EIP712, AccessControl {
     // make sure that the signer is authorized to mint NFTs
     require(hasRole(MINTER_ROLE, signer), "Signature invalid or unauthorized");
 
+    // purchase amount passed by the user must be greater the minPrice of the NFT
+    require(msg.value >= voucher.minPrice, "amount should be greater then NFT's minPrice");
+
     // first assign the token to the signer, to establish provenance on-chain
     _mint(signer, voucher.tokenId);
     _setTokenURI(voucher.tokenId, voucher.uri);
@@ -57,8 +63,9 @@ contract LazyNFT is ERC721URIStorage, EIP712, AccessControl {
   /// @param voucher An NFTVoucher to hash.
   function _hash(NFTVoucher calldata voucher) internal view returns (bytes32) {
     return _hashTypedDataV4(keccak256(abi.encode(
-      keccak256("NFTVoucher(uint256 tokenId,string uri)"),
+      keccak256("NFTVoucher(uint256 tokenId,uint256 minPrice,string uri)"),
       voucher.tokenId,
+      voucher.minPrice,
       keccak256(bytes(voucher.uri))
     )));
   }
@@ -77,7 +84,7 @@ contract LazyNFT is ERC721URIStorage, EIP712, AccessControl {
   /// @notice Verifies the signature for a given NFTVoucher, returning the address of the signer.
   /// @dev Will revert if the signature is invalid. Does not verify that the signer is authorized to mint NFTs.
   /// @param voucher An NFTVoucher describing an unminted NFT.
-  function _verify(NFTVoucher calldata voucher) internal view returns (address) {
+  function _verify(NFTVoucher calldata voucher) public view returns (address) {
     bytes32 digest = _hash(voucher);
     return ECDSA.recover(digest, voucher.signature);
   }

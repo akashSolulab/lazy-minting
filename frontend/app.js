@@ -129,6 +129,11 @@ let abi = [
 						"type": "uint256"
 					},
 					{
+						"internalType": "uint256",
+						"name": "minPrice",
+						"type": "uint256"
+					},
+					{
 						"internalType": "string",
 						"name": "uri",
 						"type": "string"
@@ -386,14 +391,42 @@ let abi = [
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "_num",
-				"type": "uint256"
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "minPrice",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "uri",
+						"type": "string"
+					},
+					{
+						"internalType": "bytes",
+						"name": "signature",
+						"type": "bytes"
+					}
+				],
+				"internalType": "struct LazyNFT.NFTVoucher",
+				"name": "voucher",
+				"type": "tuple"
 			}
 		],
-		"name": "updateNumber",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"name": "_verify",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -554,19 +587,6 @@ let abi = [
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "num",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
 				"internalType": "uint256",
@@ -637,31 +657,51 @@ let abi = [
 		"type": "function"
 	}
 ]
-const contractAddress = '0x479Bc1DCcAb34ff75D3c74abA7e711bc591EdC17';
+
+const contractAddress = '0x4b5dBCC52A24C9D515D3fCb82CCb41F768758E3E';
 const contractInstance = new ethers.Contract(contractAddress, abi, provider)
 
 // Onready event
 $(document).ready(() => {
 	// Trigger redeem function. On the click of BUY button
-    $("#0").click(() => {
+    $("#button-0").click(() => {
 		// connecting to localhost
 		axios.get('http://127.0.0.1:3000/api/getMetadataDetail')
 			.then(async (res) => {
 				console.log((res.data[0]))
-
+				let newObj = {
+					tokenId: res.data[0].tokenId, 
+					minPrice: res.data[0].minPrice,
+					uri: res.data[0].tokenURI,
+					signature: res.data[0].signature
+				}
+				console.log(newObj);
 				/**
 				 * calling redeem function from smartcontract.
 				 * This is a manual call
 				 * Can also use redeemNFT function
 				 */
-				let tx = await contractInstance.connect(signer).redeem(
-					'0xd25973623F1edFFD612393F04fb8ae9d3aEE5EdA', 
-					[res.data[0].tokenId, res.data[0].tokenURI, res.data[0].signature]
-				);
+				let options = {value: `${res.data[0].minPrice}`}
+				console.log(options);
+				// console.log(options.toString());
+				let tx = await contractInstance.connect(signer).redeem('0xd25973623F1edFFD612393F04fb8ae9d3aEE5EdA', newObj, options);
 				console.log(tx);
 			})
 			.catch(err => console.log(err))
     })
+
+	// append min token price to NFT card
+	let getClass = document.getElementsByClassName('card-col');
+	console.log(getClass.length);
+	for(let i=0; i<getClass.length; i++) {
+		let price;
+		axios.get('http://127.0.0.1:3000/api/getMetadataDetail')
+			.then(res => {
+				price = (res.data[i].minPrice);
+				let priceInEthers = ethers.utils.formatEther(`${price}`)
+				$(`.min-price-${i}`).append("Price: ", priceInEthers);
+			})
+	}	
 })
 
 // call smartcontract redeem NFT fucntion

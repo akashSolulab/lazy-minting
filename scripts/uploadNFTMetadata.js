@@ -21,18 +21,20 @@ mongoose.connect("mongodb+srv://akash:doctorwho101@cluster0.vxbiy.mongodb.net/la
 
 // connecting to ethereum provider
 const provider = new ethers.providers.AlchemyProvider('rinkeby', process.env.ALCHEMY_API_KEY);
+console.log(process.env.ALCHEMY_API_KEY);
+console.log(process.env.SIGNER_PRIV_KEY);
 
 // generating a signer
-const signer = new ethers.Wallet(process.env.SIGNER_PRIV_KEY, provider);
-console.log(signer.address);
+// const signer = new ethers.Wallet(process.env.SIGNER_PRIV_KEY, provider);
+// console.log(signer.address);
 
 // smartcontract variable declaration
-const contractAddress = '0x6B99D120c660260fad24217E4F75f21486653e05';
+const contractAddress = '0x4b5dBCC52A24C9D515D3fCb82CCb41F768758E3E';
 const abi = artifact.abi;
 
 // creating lazy mint contract instance
-const contractInstance = new ethers.Contract(contractAddress, abi, signer)
-
+// const contractInstance = new ethers.Contract(contractAddress, abi, signer)
+// console.log(contractInstance.address);
 // intializing tokenId iterator
 let tokenId = 0;
 
@@ -42,20 +44,25 @@ let tokenId = 0;
  */
 app.post('/api/uploadNFTMetadata', async (req, res) => {
   let uri = req.body.uri
+  let minPrice = req.body.minPrice
+  let parseMinPrice = ethers.utils.parseEther(`${minPrice}`).toString()
+
+  const signer = new ethers.Wallet(process.env.SIGNER_PRIV_KEY, provider);
+  const contractInstance = new ethers.Contract(contractAddress, abi, signer)
 
   // creating new voucher instance(from LazyMinter library)
   let voucher = new LazyMinter({contract: contractInstance, signer: signer});
   console.log(signer.address);
 
   // signing the voucher
-  let sig = await voucher.createVoucher(tokenId, uri);
+  let sig = await voucher.createVoucher(tokenId,parseMinPrice,uri);
   console.log(sig);
 
   // inserting NFT voucher to db
   let NFTMetadata = new NFTSchema({
-    _id: new mongoose.Types.ObjectId(),
-    tokenId: sig.tokenId,
-    tokenURI: sig.uri,
+    tokenId: tokenId,
+    tokenURI: uri,
+    minPrice: parseMinPrice,
     signature: sig.signature
   })
 
