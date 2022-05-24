@@ -13,7 +13,8 @@ localhost:3000/api/uploadNFTMetadata
 
 ###### Body Params
 {
-    "uri": "pass the token uri here"
+    "uri": "pass the token uri here",
+    "minPrice": "pass minimum price here"
 }
 
 ###### Accessing Frontend
