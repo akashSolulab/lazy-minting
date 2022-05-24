@@ -56,6 +56,9 @@ contract LazyNFT is ERC721URIStorage, EIP712, AccessControl {
     // transfer the token to the redeemer
     _transfer(signer, redeemer, voucher.tokenId);
 
+    // transfer incoming funds to seller
+    payable(msg.sender).transfer(msg.value);
+
     return voucher.tokenId;
   }
 
