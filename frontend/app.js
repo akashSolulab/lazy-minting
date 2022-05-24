@@ -660,7 +660,7 @@ let abi = [
 ]
 
 // Initializing contract instance
-const contractAddress = "0xbe41CcE4DbDa423F85a78A837eAd26223dB9C506"
+const contractAddress = "0x6DBF85F268c26d81731537e6Ad43B26DdcdAFF10"
 const contractInstance = new ethers.Contract(contractAddress, abi, provider)
 
 // Onready event
@@ -684,7 +684,8 @@ $(document).ready(() => {
 				 * Can also use redeemNFT function
 				 */
 				let value = res.data[0].minPrice
-				let options = {value: value.toString()}
+				
+				let options = {value: value}
 				
 				let tx = await contractInstance.connect(signer).redeem('0xd25973623F1edFFD612393F04fb8ae9d3aEE5EdA', newObj, options);
 				console.log(tx);
