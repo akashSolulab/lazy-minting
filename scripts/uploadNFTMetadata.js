@@ -17,24 +17,15 @@ app.use(cors());
 app.use(bodyparser.urlencoded({extended: true}));
 
 // connecting to mongodb
-mongoose.connect("mongodb+srv://akash:doctorwho101@cluster0.vxbiy.mongodb.net/lazy", {useNewUrlParser: true}, {useUnifiedTopology: true})
+mongoose.connect(`${process.env.MONGODB_URL}`, {useNewUrlParser: true}, {useUnifiedTopology: true})
 
 // connecting to ethereum provider
 const provider = new ethers.providers.AlchemyProvider('rinkeby', process.env.ALCHEMY_API_KEY);
-console.log(process.env.ALCHEMY_API_KEY);
-console.log(process.env.SIGNER_PRIV_KEY);
-
-// generating a signer
-// const signer = new ethers.Wallet(process.env.SIGNER_PRIV_KEY, provider);
-// console.log(signer.address);
 
 // smartcontract variable declaration
-const contractAddress = '0x4b5dBCC52A24C9D515D3fCb82CCb41F768758E3E';
+const contractAddress = process.env.NFT_CONTRACT_ADDRESS;
 const abi = artifact.abi;
 
-// creating lazy mint contract instance
-// const contractInstance = new ethers.Contract(contractAddress, abi, signer)
-// console.log(contractInstance.address);
 // intializing tokenId iterator
 let tokenId = 0;
 
@@ -43,20 +34,25 @@ let tokenId = 0;
  * Body params: uri (string)
  */
 app.post('/api/uploadNFTMetadata', async (req, res) => {
+
+  // Request body params
   let uri = req.body.uri
   let minPrice = req.body.minPrice
+
+  // converting price from ETH to WEI
   let parseMinPrice = ethers.utils.parseEther(`${minPrice}`).toString()
 
+  // generating a signer
   const signer = new ethers.Wallet(process.env.SIGNER_PRIV_KEY, provider);
+
+  // creating lazy mint contract instance
   const contractInstance = new ethers.Contract(contractAddress, abi, signer)
 
   // creating new voucher instance(from LazyMinter library)
   let voucher = new LazyMinter({contract: contractInstance, signer: signer});
-  console.log(signer.address);
 
   // signing the voucher
   let sig = await voucher.createVoucher(tokenId,parseMinPrice,uri);
-  console.log(sig);
 
   // inserting NFT voucher to db
   let NFTMetadata = new NFTSchema({

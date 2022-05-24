@@ -84,7 +84,7 @@ contract LazyNFT is ERC721URIStorage, EIP712, AccessControl {
   /// @notice Verifies the signature for a given NFTVoucher, returning the address of the signer.
   /// @dev Will revert if the signature is invalid. Does not verify that the signer is authorized to mint NFTs.
   /// @param voucher An NFTVoucher describing an unminted NFT.
-  function _verify(NFTVoucher calldata voucher) public view returns (address) {
+  function _verify(NFTVoucher calldata voucher) internal view returns (address) {
     bytes32 digest = _hash(voucher);
     return ECDSA.recover(digest, voucher.signature);
   }

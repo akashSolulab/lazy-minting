@@ -1,6 +1,7 @@
 // Fetching the ethereum provider
 const provider = new ethers.providers.Web3Provider(window.ethereum)
-console.log(provider);
+
+// Initializing signer
 let signer;
 
 // Connecting to metamask
@@ -658,32 +659,33 @@ let abi = [
 	}
 ]
 
-const contractAddress = '0x4b5dBCC52A24C9D515D3fCb82CCb41F768758E3E';
+// Initializing contract instance
+const contractAddress = "0xbe41CcE4DbDa423F85a78A837eAd26223dB9C506"
 const contractInstance = new ethers.Contract(contractAddress, abi, provider)
 
 // Onready event
 $(document).ready(() => {
 	// Trigger redeem function. On the click of BUY button
     $("#button-0").click(() => {
-		// connecting to localhost
+		// connecting to localhost API request
 		axios.get('http://127.0.0.1:3000/api/getMetadataDetail')
 			.then(async (res) => {
-				console.log((res.data[0]))
+				
+				// Creating new object to for contract param
 				let newObj = {
 					tokenId: res.data[0].tokenId, 
 					minPrice: res.data[0].minPrice,
 					uri: res.data[0].tokenURI,
 					signature: res.data[0].signature
 				}
-				console.log(newObj);
 				/**
 				 * calling redeem function from smartcontract.
 				 * This is a manual call
 				 * Can also use redeemNFT function
 				 */
-				let options = {value: `${res.data[0].minPrice}`}
-				console.log(options);
-				// console.log(options.toString());
+				let value = res.data[0].minPrice
+				let options = {value: value.toString()}
+				
 				let tx = await contractInstance.connect(signer).redeem('0xd25973623F1edFFD612393F04fb8ae9d3aEE5EdA', newObj, options);
 				console.log(tx);
 			})
@@ -692,20 +694,15 @@ $(document).ready(() => {
 
 	// append min token price to NFT card
 	let getClass = document.getElementsByClassName('card-col');
-	console.log(getClass.length);
+	
+	// loop through class card-col
 	for(let i=0; i<getClass.length; i++) {
 		let price;
 		axios.get('http://127.0.0.1:3000/api/getMetadataDetail')
 			.then(res => {
 				price = (res.data[i].minPrice);
 				let priceInEthers = ethers.utils.formatEther(`${price}`)
-				$(`.min-price-${i}`).append("Price: ", priceInEthers);
+				$(`.min-price-${i}`).prepend("Price: ", priceInEthers);
 			})
 	}	
 })
-
-// call smartcontract redeem NFT fucntion
-async function redeemNFT(redeemerAddress, voucher) {
-	let tx = await contractInstance.connect(signer).redeem(redeemerAddress, voucher);
-	console.log(tx);
-}
